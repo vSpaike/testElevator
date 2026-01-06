@@ -12,15 +12,15 @@ public class Ascenseur extends Thread
     /** L'instance du simulateur qui gere le syteme. */
 	private Simulateur sim;
     
-    static private boolean DEBUG =Constantes.DEBUG;
+    static private boolean DEBUG = Constantes.DEBUG;
     
     
     /** Constructeur. */
     public Ascenseur (int etage, Simulateur sim)
     {
-		this.etage =etage;
-		this.sim =sim;
-		this.dir =Direction.NONE;
+		this.etage = etage;
+		this.sim = sim;
+		this.dir = Direction.NONE;
     }
         
     
@@ -29,11 +29,11 @@ public class Ascenseur extends Thread
  		while(true)
 		{	
 			// [1] Si l'ascenceur n'a aucune direction, prendre celle de l'appel a l'etage
-			if (dir ==Direction.NONE && sim.appels[etage-1] !=Direction.NONE)
-				dir =sim.appels[etage-1];
+			if (dir == Direction.NONE && sim.appels[etage-1] != Direction.NONE)
+				dir = sim.appels[etage-1];
 			
 		    // [2] Ouvrir si necessaire
-		    if( (sim.appels[etage-1] !=Direction.NONE && dir ==sim.appels[etage-1]) 
+		    if( (sim.appels[etage-1] != Direction.NONE && dir == sim.appels[etage-1]) 
 		    		|| sim.destinations[etage-1])
 		    {				
 				// 2.1 Signaler l'arret
@@ -47,19 +47,18 @@ public class Ascenseur extends Thread
 
 				sim.ajouter_evenement("+ Ascenseur: \t\t+ fin de l'arret\n");
 
-
 				// 2.3 Effacer appel ou destination pour l'etage courant
-				if (sim.appels[etage-1]==dir)
-					sim.appels[etage-1]=Direction.NONE;
-				sim.destinations[etage-1]=false;		
+				if (sim.appels[etage-1] == dir)
+					sim.appels[etage-1] = Direction.NONE;
+				sim.destinations[etage-1] = false;		
 		    }
 
 		    // [3] Choisir la direction de l'ascenseur
-		    dir =choisirDirection();
+		    dir = choisirDirection();
 	    	sim.ajouter_evenement("+ Ascenseur:	\t+ direction: "+dir+"\n");
 
 	    	// [4] Changer d'etage
-		    if (dir == Direction.UP) // true ICI 
+		    if (dir == Direction.UP)
 			    etage++;
 		    else if (dir == Direction.DOWN)
 			    etage--;
@@ -72,88 +71,116 @@ public class Ascenseur extends Thread
 		    else if (etage == 1)
 		    	dir = Direction.UP;
 	
-		    
-		    try { Thread.sleep(100); } // Courte pause pour allouer le controle aux autres thread...
+		    try { Thread.sleep(100); }
 		    catch(InterruptedException e) { System.out.print("Erreur dans Thread.sleep\n"); }
 		}
     }
-    
     
     
     /**
      * La methode choisirDirection() retourne la prochaine direction que 
      * l'ascenseur devrait prendre pour emmener un usager a destination
      * ou encore laisser entrer un usager en attente.
-     * <p>
-     * La methode doit respecter les specifications fournies dans l'enonce
-     * du TP1. 
-     *
-     * @return 	La prochaine direction que l'ascenseur doit prendre.
-     * @see		Direction
      */    
-    private Direction choisirDirection ()
+    private Direction choisirDirection()
     {
-    	Direction ret =Direction.NONE;
-
-    	
-    	if (DEBUG)
-    		System.out.println(
-    				" >> Je suis un printout de deboguage - Utilisez-moi!!\n" +
-    				" >> La methode choisirDirection() n'est pas implantee!");
-    	
-		if (etage == -1)
-		{
-			return Direction.NONE;
-		}
-		
-		if(appelAuDessus(etage)){
-			ret = Direction.UP;
-		}
-		else if(appelEnDessous(etage)){
-			ret = Direction.DOWN;
-		}
-		
-		for(int i = 0; i < Constantes.ETAGES; i++)
-		{
-			if (sim.appels[i] != Direction.NONE || sim.destinations[i] == true)
-			{	
-				if (i+1 > etage){
-					ret = Direction.UP;
-					break;
-				}
-				else if (i+1 < etage){
-					ret = Direction.DOWN;
-					break;
-				}
-			}
-    	}
-		return ret;
-
-	}
-	
+        Direction ret = Direction.NONE;
+        
+        if (etage == -1)
+        {
+            return Direction.NONE;
+        }
+        
+        // [3.1] Si la direction est UP ou NONE
+        if (this.dir == Direction.UP || this.dir == Direction.NONE)
+        {
+            // [3.1.1] S'il existe un appel au-dessus ou une destination au-dessus
+            if (appelAuDessus(etage) || destinationAuDessus(etage))
+            {
+                ret = Direction.UP;
+            }
+            // [3.1.2] S'il existe un appel en dessous ou une destination en dessous
+            else if (appelEnDessous(etage) || destinationEnDessous(etage))
+            {
+                ret = Direction.DOWN;
+            }
+            // [3.1.3] Sinon rester à l'étage (NONE)
+            else
+            {
+                ret = Direction.NONE;
+            }
+        }
+        // [3.2] Si la direction est DOWN
+        else if (this.dir == Direction.DOWN)
+        {
+            // [3.2.1] S'il existe un appel en dessous ou une destination en dessous
+            if (appelEnDessous(etage) || destinationEnDessous(etage))
+            {
+                ret = Direction.DOWN;
+            }
+            // [3.2.2] S'il existe un appel au-dessus ou une destination au-dessus
+            else if (appelAuDessus(etage) || destinationAuDessus(etage))
+            {
+                ret = Direction.UP;
+            }
+            // [3.2.3] Sinon rester à l'étage (NONE)
+            else
+            {
+                ret = Direction.NONE;
+            }
+        }
+        
+        if (DEBUG)
+        {
+            System.out.println(" >> choisirDirection() : direction actuelle = " + 
+                              this.dir + ", nouvelle direction = " + ret);
+        }
+        
+        return ret;
+    }
     
     private boolean appelAuDessus(int etageCourant)
     {
-    	boolean ret =false;
-    	for (int i=Constantes.ETAGES-1; i>=etageCourant; i--)
+    	boolean ret = false;
+    	for (int i = Constantes.ETAGES-1; i >= etageCourant; i--)
     	{
-    		if (sim.appels[i]!=Direction.NONE)
-    			ret =true;
+    		if (sim.appels[i] != Direction.NONE)
+    			ret = true;
     	}
-    	
     	return ret;
     }
     
     private boolean appelEnDessous(int etageCourant)
     {
-    	boolean ret =false;
-    	for (int i=0; i<etageCourant-1; i++)
+    	boolean ret = false;
+    	for (int i = 0; i < etageCourant - 1; i++)
     	{
-    		if (sim.appels[i]!=Direction.NONE)
-    			ret =true;
+    		if (sim.appels[i] != Direction.NONE)
+    			ret = true;
     	}
-
     	return ret;
+    }
+    
+    private boolean destinationAuDessus(int etageCourant)
+    {
+        boolean ret = false;
+        for (int i = etageCourant; i < Constantes.ETAGES; i++)
+        {
+            if (sim.destinations[i] == true)
+                ret = true;
+        }
+        return ret;
+    }
+
+    private boolean destinationEnDessous(int etageCourant)
+    {
+        boolean ret = false;
+        for (int i = 0; i < etageCourant - 1; i++)
+        {
+            if (sim.destinations[i] == true)
+                ret = true;
+        }
+        return ret;
     }
     
     public String toString()
@@ -163,4 +190,4 @@ public class Ascenseur extends Thread
 				", direction=" + dir + 
 				"]";
 	}
-}
+} 
