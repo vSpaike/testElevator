@@ -92,4 +92,14 @@ public class Usager extends Thread
 		// L'usager a termine 
 		sim.sig_usagerTermine();
     }
+
+	public String toString()
+	{
+		return "Usager[" +
+				"name=" + name +
+				", etage=" + etage + 
+				", dest=" + dest +
+				", dir=" + dir +
+				"]";
+	}
 }
