@@ -82,61 +82,26 @@ public class Ascenseur extends Thread
      * l'ascenseur devrait prendre pour emmener un usager a destination
      * ou encore laisser entrer un usager en attente.
      */    
-    private Direction choisirDirection()
+    public Direction choisirDirection ()
     {
-        Direction ret = Direction.NONE;
-        
-        if (etage == -1)
-        {
-            return Direction.NONE;
-        }
-        
-        // [3.1] Si la direction est UP ou NONE
-        if (this.dir == Direction.UP || this.dir == Direction.NONE)
-        {
-            // [3.1.1] S'il existe un appel au-dessus ou une destination au-dessus
-            if (appelAuDessus(etage) || destinationAuDessus(etage))
-            {
-                ret = Direction.UP;
-            }
-            // [3.1.2] S'il existe un appel en dessous ou une destination en dessous
-            else if (appelEnDessous(etage) || destinationEnDessous(etage))
-            {
-                ret = Direction.DOWN;
-            }
-            // [3.1.3] Sinon rester à l'étage (NONE)
-            else
-            {
-                ret = Direction.NONE;
-            }
-        }
-        // [3.2] Si la direction est DOWN
-        else if (this.dir == Direction.DOWN)
-        {
-            // [3.2.1] S'il existe un appel en dessous ou une destination en dessous
-            if (appelEnDessous(etage) || destinationEnDessous(etage))
-            {
-                ret = Direction.DOWN;
-            }
-            // [3.2.2] S'il existe un appel au-dessus ou une destination au-dessus
-            else if (appelAuDessus(etage) || destinationAuDessus(etage))
-            {
-                ret = Direction.UP;
-            }
-            // [3.2.3] Sinon rester à l'étage (NONE)
-            else
-            {
-                ret = Direction.NONE;
-            }
-        }
-        
-        if (DEBUG)
-        {
-            System.out.println(" >> choisirDirection() : direction actuelle = " + 
-                              this.dir + ", nouvelle direction = " + ret);
-        }
-        
-        return ret;
+    	Direction ret =Direction.NONE;
+    		
+    	if (dir==Direction.UP || dir==Direction.NONE) 
+    	{
+    		if (appelAuDessus(etage) || destAuDessus(etage))
+    			ret =Direction.UP;
+    		else if (appelEnDessous(etage) || destEnDessous(etage))
+    			ret =Direction.DOWN;
+    	}
+    	else if (dir==Direction.DOWN)
+    	{
+    		if (appelEnDessous(etage) || destEnDessous(etage))
+    			ret =Direction.DOWN;
+    		else if (appelAuDessus(etage) || destAuDessus(etage))
+    			ret =Direction.UP;
+    	} 		
+    	    		   	
+    	return ret;
     }
     
     private boolean appelAuDessus(int etageCourant)
@@ -161,7 +126,7 @@ public class Ascenseur extends Thread
     	return ret;
     }
     
-    private boolean destinationAuDessus(int etageCourant)
+    private boolean destAuDessus(int etageCourant)
     {
         boolean ret = false;
         for (int i = etageCourant; i < Constantes.ETAGES; i++)
@@ -172,7 +137,7 @@ public class Ascenseur extends Thread
         return ret;
     }
 
-    private boolean destinationEnDessous(int etageCourant)
+    private boolean destEnDessous(int etageCourant)
     {
         boolean ret = false;
         for (int i = 0; i < etageCourant - 1; i++)
