@@ -1,100 +1,123 @@
 package tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+
+import java.util.function.BooleanSupplier;
 
 import code.Ascenseur;
 import code.Direction;
 import code.Simulateur;
 
 /**
- * Tests structurels de la méthode Ascenseur::choisirDirection()
- * Critère de couverture : tous les nœuds
+ * Driver qui permet d'executer les tests unitaires sur le simulateur
+ * d'ascenseur.
  */
 public class TestAscenseur extends Simulateur {
 
-    /**
-     * Test 1 : direction NONE avec appel au-dessus
-     * Chemin : [3, 5, 7, 8, 20]
-     * Résultat attendu : UP
-     */
-    @Test
-    public void testChoisirDirection_chemin1() {
-        System.out.println("\n-> Test 1 : choisirDirection - chemin 1\n");
+	@Override
+	public boolean check_peutRedemarrer() {
+		return true;
+	}
 
-        ascenseur = new Ascenseur(1, this);
-        appels[1] = Direction.UP;
+	private void attendreCondition(BooleanSupplier condition, long timeoutMs) {
+		long start = System.currentTimeMillis();
+		while (!condition.getAsBoolean() && (System.currentTimeMillis() - start) < timeoutMs) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				break;
+			}
+		}
+	}
 
-        System.out.println("(a) L'" + ascenseur + " est au 1er étage");
-        System.out.println("    appelAuDessus = true");
+	@SuppressWarnings("deprecation")
+	private void arreterThread(Ascenseur asc) {
+		asc.stop();
+	}
 
-        assertEquals(Direction.UP, ascenseur.choisirDirection());
+	/** Test unitaire sur l'ascenseur. */
+	@Test
+	public void testChoisirDirection_chemin1() {
+		System.out.println("\n-> Test 1: choisir Direction - chemin 1\n");
 
-        System.out.println("(b) La direction choisie est bien UP");
-    }
+		ascenseur = new Ascenseur(1, this);
+		appels[1] = Direction.UP;
+		System.out.println("(a) L'" + ascenseur + " est au 1er etage");
 
-    /**
-     * Test 2 : direction NONE avec appel en dessous
-     * Chemin : [3, 5, 7, 9, 10, 20]
-     * Résultat attendu : DOWN
-     */
-    @Test
-    public void testChoisirDirection_chemin2() {
-        System.out.println("\n-> Test 2 : choisirDirection - chemin 2\n");
+		// Valider le comportement :
+		assertEquals(ascenseur.choisirDirection(), Direction.UP);
 
-        ascenseur = new Ascenseur(3, this);
-        appels[0] = Direction.DOWN;
+		System.out.println("(b) La direction choisie est bien UP");
 
-        System.out.println("(a) L'" + ascenseur + " est au 3ème étage");
-        System.out.println("    appelEnDessous = true");
+	}
 
-        assertEquals(Direction.DOWN, ascenseur.choisirDirection());
+	/** Test unitaire sur l'ascenseur. */
+	@Test
+	public void testChoisirDirection_chemin2() {
+		System.out.println("\n-> Test 2: choisir Direction - chemin 2\n");
 
-        System.out.println("(b) La direction choisie est bien DOWN");
-    }
+		ascenseur = new Ascenseur(3, this);
+		appels[0] = Direction.DOWN;
+		System.out.println("(a) L'" + ascenseur + " est au 3e etage");
 
-    /**
-     * Test 3 : direction DOWN avec appel en dessous
-     * Chemin : [3, 5, 12, 14, 15, 20]
-     * Résultat attendu : DOWN
-     */
-    @Test
-    public void testChoisirDirection_chemin3() {
-        System.out.println("\n-> Test 3 : choisirDirection - chemin 3\n");
+		// Valider le comportement :
+		assertEquals(ascenseur.choisirDirection(), Direction.DOWN);
 
-        ascenseur = new Ascenseur(4, this);
-        ascenseur.dir = Direction.DOWN;
-        appels[1] = Direction.DOWN;
+		System.out.println("(b) La direction choisie est bien DOWN");
 
-        System.out.println("(a) L'" + ascenseur + " est au 4ème étage");
-        System.out.println("    direction courante = DOWN");
-        System.out.println("    appelEnDessous = true");
+	}
 
-        assertEquals(Direction.DOWN, ascenseur.choisirDirection());
+	/** Test unitaire sur l'ascenseur. */
+	@Test
+	public void testChoisirDirection_chemin3() {
+		System.out.println("\n-> Test 3: choisir Direction - chemin 3\n");
+		ascenseur = new Ascenseur(2, this);
+		appels[2] = Direction.NONE;
+		System.out.println("(a) L'" + ascenseur + " est au 2e etage");
 
-        System.out.println("(b) La direction choisie est bien DOWN");
-    }
+		// Valider le comportement :
+		assertEquals(ascenseur.choisirDirection(), Direction.NONE);
+		System.out.println("(b) La direction choisie est bien NONE");
+	}
 
-    /**
-     * Test 4 : direction DOWN avec appel au-dessus
-     * Chemin : [3, 5, 12, 14, 16, 17, 20]
-     * Résultat attendu : UP
-     */
-    @Test
-    public void testChoisirDirection_chemin4() {
-        System.out.println("\n-> Test 4 : choisirDirection - chemin 4\n");
+	/** Test unitaire sur l'ascenseur. */
+	@Test
+	public void testRun_effaceAppelMemeEtage() {
+		System.out.println("\n-> Test 4: run - appel au meme etage\n");
 
-        ascenseur = new Ascenseur(1, this);
-        ascenseur.dir = Direction.DOWN;
-        appels[2] = Direction.UP;
+		Ascenseur asc = new Ascenseur(1, this);
+		appels[0] = Direction.UP;
+		System.out.println("(a) L'" + asc + " est au 1er etage");
+		System.out.println("    appel a l'etage 1");
 
-        System.out.println("(a) L'" + ascenseur + " est au 1er étage");
-        System.out.println("    direction courante = DOWN");
-        System.out.println("    appelAuDessus = true");
+		asc.start();
+		attendreCondition(() -> appels[0] == Direction.NONE, 500);
+		arreterThread(asc);
 
-        assertEquals(Direction.UP, ascenseur.choisirDirection());
+		assertEquals(Direction.NONE, appels[0]);
+		System.out.println("(b) L'appel a ete efface");
+	}
 
-        System.out.println("(b) La direction choisie est bien UP");
-    }
+	/** Test unitaire sur l'ascenseur. */
+	@Test
+	public void testRun_deplacementVersEtageSuperieur() {
+		System.out.println("\n-> Test 5: run - deplacement vers etage superieur\n");
+
+		Ascenseur asc = new Ascenseur(1, this);
+		destinations[1] = true;
+		System.out.println("(a) L'" + asc + " est au 1er etage");
+		System.out.println("    destination etage 2");
+
+		asc.start();
+		attendreCondition(() -> asc.etage >= 2, 500);
+		arreterThread(asc);
+
+		assertTrue(asc.etage >= 2);
+		System.out.println("(b) L'ascenseur est monte d'au moins un etage");
+	}
+
 }
